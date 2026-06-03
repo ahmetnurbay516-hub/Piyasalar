@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PiyasaTR — Canlı Piyasa</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e17;--surface:#0f1520;--card:#141c2e;--border:#1e2d47;
+  --text:#e8eef8;--muted:#4a6080;--green:#22c55e;--red:#ef4444;
+  --blue:#3b82f6;--gold:#f59e0b;--purple:#a855f7;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;
+  background:linear-gradient(90deg,#3b82f6,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.live{display:flex;align-items:center;gap:0.4rem;font-size:0.7rem;font-weight:600;color:var(--green);letter-spacing:1px}
+.dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:0.85rem 1.3rem;font-size:0.82rem;font-weight:600;color:var(--muted);
+  cursor:pointer;border:none;background:none;font-family:'Inter',sans-serif;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab:hover{color:var(--text)}
+
+/* TICKER */
+.ticker-wrap{background:#080c14;border-bottom:1px solid var(--border);overflow:hidden;padding:0.45rem 0}
+.ticker{display:flex;gap:2.5rem;animation:scroll 25s linear infinite;width:max-content;white-space:nowrap}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.75rem}
+.ti-name{color:var(--muted)}
+.ti-val{color:var(--text);font-weight:600}
+
+/* MAIN */
+.main{padding:1rem 1.2rem;max-width:700px;margin:0 auto}
+.sec{display:none}.sec.active{display:block}
+
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
+.guncelle{background:none;border:1px solid var(--border);color:var(--muted);
+  font-size:0.72rem;padding:0.3rem 0.75rem;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s}
+.guncelle:hover{border-color:var(--blue);color:var(--blue)}
+
+/* MIKTAR */
+.miktar-box{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem}
+.miktar-box label{font-size:0.68rem;font-weight:700;color:var(--muted);white-space:nowrap;letter-spacing:1px;text-transform:uppercase}
+.miktar-box input{flex:1;background:transparent;border:none;color:var(--text);
+  font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;outline:none;width:100%}
+
+/* KUR SATIR */
+.kur-list{display:flex;flex-direction:column;gap:0.4rem}
+.kur-row{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:0.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;transition:border-color 0.2s}
+.kur-row:hover{border-color:var(--border);background:#192035}
+.kur-l{display:flex;align-items:center;gap:0.7rem}
+.kur-flag{font-size:1.3rem;width:32px;text-align:center}
+.kur-sym{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:1px}
+.kur-name{font-size:0.68rem;color:var(--muted);margin-top:0.05rem}
+.kur-r{text-align:right}
+.kur-try{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--text)}
+.kur-eq{font-size:0.7rem;color:var(--blue);margin-top:0.1rem}
+
+/* ALTIN */
+.altin-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1rem}
+.altin-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem}
+.altin-card:hover{border-color:var(--gold)}
+.altin-icon{font-size:1.4rem;margin-bottom:0.4rem}
+.altin-name{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.altin-price{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);margin-top:0.2rem}
+.altin-sub{font-size:0.7rem;color:var(--muted)}
+.altin-eq{font-size:0.72rem;color:var(--text);margin-top:0.3rem;font-weight:500}
+
+/* KRİPTO */
+.kripto-list{display:flex;flex-direction:column;gap:0.4rem}
+.kripto-row{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:0.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between}
+.kripto-l{display:flex;align-items:center;gap:0.75rem}
+.kripto-img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.kripto-sym{font-weight:700;font-size:0.9rem}
+.kripto-name{font-size:0.68rem;color:var(--muted)}
+.kripto-r{text-align:right}
+.kripto-price{font-family:'Bebas Neue',sans-serif;font-size:1.15rem}
+.kripto-chg{font-size:0.72rem;font-weight:700;margin-top:0.05rem}
+.kripto-try{font-size:0.68rem;color:var(--muted)}
+.up{color:var(--green)}.down{color:var(--red)}
+
+/* BORSA */
+.borsa-list{display:flex;flex-direction:column;gap:0.4rem}
+.borsa-row{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:0.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between}
+.borsa-l{display:flex;align-items:center;gap:0.7rem}
+.borsa-flag{font-size:1.2rem}
+.borsa-sym{font-weight:700;font-size:0.9rem}
+.borsa-name{font-size:0.68rem;color:var(--muted)}
+.borsa-r{text-align:right}
+.borsa-val{font-family:'Bebas Neue',sans-serif;font-size:1.2rem}
+.borsa-chg{font-size:0.72rem;font-weight:700}
+
+.loading{text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem}
+.spin{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--blue);
+  border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 0.75rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.warn{background:#1a1000;border:1px solid #3a2500;border-radius:8px;
+  padding:0.6rem 1rem;margin-bottom:0.75rem;font-size:0.72rem;color:var(--gold)}
+
+footer{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:0.7rem;
+  border-top:1px solid var(--border);margin-top:1.5rem}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PiyasaTR</div>
+  <div class="live"><div class="dot"></div>CANLI</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="goTab('doviz',this)">💱 Döviz</button>
+  <button class="tab" onclick="goTab('altin',this)">🥇 Altın</button>
+  <button class="tab" onclick="goTab('kripto',this)">₿ Kripto</button>
+  <button class="tab" onclick="goTab('borsa',this)">📈 Borsa</button>
+</div>
+
+<div class="ticker-wrap">
+  <div class="ticker" id="tickerInner">
+    <span class="ti"><span class="ti-name">USD/TRY</span><span class="ti-val" id="tk-usd">46,20</span></span>
+    <span class="ti"><span class="ti-name">EUR/TRY</span><span class="ti-val" id="tk-eur">50,18</span></span>
+    <span class="ti"><span class="ti-name">GBP/TRY</span><span class="ti-val" id="tk-gbp">58,56</span></span>
+    <span class="ti"><span class="ti-name">ALTIN/GR</span><span class="ti-val" id="tk-altin">2.910</span></span>
+    <span class="ti"><span class="ti-name">BTC/USD</span><span class="ti-val" id="tk-btc">—</span></span>
+    <span class="ti"><span class="ti-name">ETH/USD</span><span class="ti-val" id="tk-eth">—</span></span>
+    <span class="ti"><span class="ti-name">USD/TRY</span><span class="ti-val">46,20</span></span>
+    <span class="ti"><span class="ti-name">EUR/TRY</span><span class="ti-val">50,18</span></span>
+    <span class="ti"><span class="ti-name">GBP/TRY</span><span class="ti-val">58,56</span></span>
+    <span class="ti"><span class="ti-name">ALTIN/GR</span><span class="ti-val">2.910</span></span>
+    <span class="ti"><span class="ti-name">BTC/USD</span><span class="ti-val" id="tk-btc2">—</span></span>
+    <span class="ti"><span class="ti-name">ETH/USD</span><span class="ti-val" id="tk-eth2">—</span></span>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- DÖVİZ -->
+<div class="sec active" id="sec-doviz">
+  <div class="sec-hdr">
+    <div class="sec-title">Döviz Kurları</div>
+    <button class="guncelle" onclick="loadDoviz()">↻ Güncelle</button>
+  </div>
+  <div class="miktar-box">
+    <label>TL Miktarı</label>
+    <input type="number" id="tlMiktar" value="1000" oninput="renderDoviz()">
+  </div>
+  <div class="kur-list" id="dovizList"></div>
+</div>
+
+<!-- ALTIN -->
+<div class="sec" id="sec-altin">
+  <div class="sec-hdr">
+    <div class="sec-title">Altın Fiyatları</div>
+    <button class="guncelle" onclick="loadDoviz()">↻ Güncelle</button>
+  </div>
+  <div class="miktar-box">
+    <label>TL Miktarı</label>
+    <input type="number" id="tlAltin" value="10000" oninput="renderAltin()">
+  </div>
+  <div class="altin-grid" id="altinList"></div>
+</div>
+
+<!-- KRİPTO -->
+<div class="sec" id="sec-kripto">
+  <div class="sec-hdr">
+    <div class="sec-title">Kripto Para</div>
+    <button class="guncelle" onclick="loadKripto()">↻ Güncelle</button>
+  </div>
+  <div class="kripto-list" id="kriptoList"><div class="loading"><div class="spin"></div>Yükleniyor...</div></div>
+</div>
+
+<!-- BORSA -->
+<div class="sec" id="sec-borsa">
+  <div class="sec-hdr">
+    <div class="sec-title">Küresel Endeksler</div>
+    <button class="guncelle" onclick="renderBorsa()">↻ Güncelle</button>
+  </div>
+  <div class="borsa-list" id="borsaList"></div>
+</div>
+
+</div>
+<footer>© 2025 PiyasaTR · Yatırım tavsiyesi değildir.</footer>
+
+<script>
+// SABIT KURLAR (fallback)
+let R = {
+  TRY:46.20,USD:1,EUR:0.921,GBP:0.789,CHF:0.899,
+  JPY:154.8,CAD:1.374,AUD:1.543,SAR:3.751,AED:3.673,
+  RUB:91.2,CNY:7.243,DKK:6.882,NOK:10.68,SEK:10.44
+};
+let liveRates = false;
+
+const KURLAR = [
+  {k:'USD',n:'Amerikan Doları',f:'🇺🇸'},
+  {k:'EUR',n:'Euro',f:'🇪🇺'},
+  {k:'GBP',n:'İngiliz Sterlini',f:'🇬🇧'},
+  {k:'CHF',n:'İsviçre Frangı',f:'🇨🇭'},
+  {k:'JPY',n:'Japon Yeni',f:'🇯🇵'},
+  {k:'CAD',n:'Kanada Doları',f:'🇨🇦'},
+  {k:'AUD',n:'Avustralya Doları',f:'🇦🇺'},
+  {k:'SAR',n:'Suudi Riyali',f:'🇸🇦'},
+  {k:'AED',n:'BAE Dirhemi',f:'🇦🇪'},
+  {k:'RUB',n:'Rus Rublesi',f:'🇷🇺'},
+  {k:'CNY',n:'Çin Yuanı',f:'🇨🇳'},
+  {k:'DKK',n:'Danimarka Kronu',f:'🇩🇰'},
+  {k:'NOK',n:'Norveç Kronu',f:'🇳🇴'},
+  {k:'SEK',n:'İsveç Kronu',f:'🇸🇪'},
+];
+
+function fmt(n,d=2){return n.toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtD(n){return n>=1000?fmt(n,0):n>=1?fmt(n,2):n.toFixed(4)}
+
+function goTab(id,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active');
+}
+
+function renderDoviz(){
+  const tl = parseFloat(document.getElementById('tlMiktar').value)||1000;
+  const tryR = R.TRY;
+  let html = liveRates ? '' : '<div class="warn">⚠️ Tahmini kurlar gösteriliyor — canlı kur alınamadı.</div>';
+  html += KURLAR.map(c=>{
+    const birTry = tryR/R[c.k];
+    const eq = tl/birTry;
+    return `<div class="kur-row">
+      <div class="kur-l">
+        <div class="kur-flag">${c.f}</div>
+        <div><div class="kur-sym">${c.k}</div><div class="kur-name">${c.n}</div></div>
+      </div>
+      <div class="kur-r">
+        <div class="kur-try">${fmt(birTry)} ₺</div>
+        <div class="kur-eq">${fmt(tl,0)} ₺ = ${fmt(eq,3)} ${c.k}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('dovizList').innerHTML = html;
+
+  // Ticker güncelle
+  document.getElementById('tk-usd').textContent = fmt(tryR/R.USD);
+  document.getElementById('tk-eur').textContent = fmt(tryR/R.EUR);
+  document.getElementById('tk-gbp').textContent = fmt(tryR/R.GBP);
+}
+
+function renderAltin(){
+  const tl = parseFloat(document.getElementById('tlAltin').value)||10000;
+  const tryR = R.TRY;
+  // Altın gram fiyatı: 1 troy oz ≈ 31.1g, 1 USD altın ≈ $3350/oz (2025)
+  const goldUSD = 3350;
+  const goldTRY = goldUSD * (tryR/R.USD) / 31.1035;
+
+  const ALTIN = [
+    {icon:'🥇',n:'Gram Altın',gr:1},
+    {icon:'💛',n:'Çeyrek Altın',gr:1.75},
+    {icon:'🟡',n:'Yarım Altın',gr:3.5},
+    {icon:'🔶',n:'Tam Altın',gr:7},
+    {icon:'🪙',n:'Cumhuriyet',gr:7.216},
+    {icon:'💰',n:'Ata 5\'li',gr:36.08},
+  ];
+
+  document.getElementById('altinList').innerHTML = ALTIN.map(a=>{
+    const fiyat = goldTRY*a.gr;
+    const eq = tl/fiyat;
+    return `<div class="altin-card">
+      <div class="altin-icon">${a.icon}</div>
+      <div class="altin-name">${a.n}</div>
+      <div class="altin-price">${fmt(fiyat,0)} ₺</div>
+      <div class="altin-eq">${fmt(tl,0)} ₺ = ${eq.toFixed(3)} adet</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tk-altin').textContent = fmt(goldTRY,0);
+}
+
+async function loadDoviz(){
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD',{signal:AbortSignal.timeout(5000)});
+    const d = await res.json();
+    if(d.rates && d.rates.TRY){ R = d.rates; liveRates = true; }
+  } catch(e) {}
+  try {
+    if(!liveRates){
+      const res = await fetch('https://open.er-api.com/v6/latest/USD',{signal:AbortSignal.timeout(5000)});
+      const d = await res.json();
+      if(d.rates && d.rates.TRY){ R = d.rates; liveRates = true; }
+    }
+  } catch(e) {}
+  renderDoviz();
+  renderAltin();
+}
+
+async function loadKripto(){
+  const tryR = R.TRY/R.USD;
+  const apis = [
+    'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=15&page=1&sparkline=false',
+    'https://api.coincap.io/v2/assets?limit=15',
+  ];
+
+  // CoinGecko dene
+  try {
+    const res = await fetch(apis[0], {signal:AbortSignal.timeout(8000)});
+    const coins = await res.json();
+    if(Array.isArray(coins) && coins.length > 0){
+      renderKriptoGecko(coins, tryR);
+      return;
+    }
+  } catch(e){}
+
+  // CoinCap dene
+  try {
+    const res = await fetch(apis[1], {signal:AbortSignal.timeout(8000)});
+    const d = await res.json();
+    if(d.data && d.data.length > 0){
+      renderKriptoCap(d.data, tryR);
+      return;
+    }
+  } catch(e){}
+
+  // Fallback sabit kripto
+  const sabit = [
+    {sym:'BTC',name:'Bitcoin',price:107500,chg:2.4},
+    {sym:'ETH',name:'Ethereum',price:3850,chg:1.8},
+    {sym:'BNB',name:'BNB',price:720,chg:0.9},
+    {sym:'SOL',name:'Solana',price:185,chg:3.2},
+    {sym:'XRP',name:'XRP',price:2.85,chg:-0.5},
+    {sym:'DOGE',name:'Dogecoin',price:0.38,chg:1.2},
+    {sym:'ADA',name:'Cardano',price:0.95,chg:-1.1},
+    {sym:'AVAX',name:'Avalanche',price:42,chg:2.0},
+    {sym:'DOT',name:'Polkadot',price:9.8,chg:-0.8},
+    {sym:'MATIC',name:'Polygon',price:0.62,chg:0.5},
+  ];
+  document.getElementById('kriptoList').innerHTML = 
+    '<div class="warn">⚠️ Tahmini fiyatlar — canlı veri alınamadı.</div>' +
+    sabit.map(c=>{
+      const tryF = c.price*tryR;
+      const up = c.chg>=0;
+      return `<div class="kripto-row">
+        <div class="kripto-l">
+          <div style="width:34px;height:34px;border-radius:50%;background:#1e2d47;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#3b82f6">${c.sym.slice(0,3)}</div>
+          <div><div class="kripto-sym">${c.sym}</div><div class="kripto-name">${c.name}</div></div>
+        </div>
+        <div class="kripto-r">
+          <div class="kripto-price">$${fmtD(c.price)}</div>
+          <div class="kripto-chg ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(c.chg).toFixed(2)}%</div>
+          <div class="kripto-try">${fmt(tryF,0)} ₺</div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function renderKriptoGecko(coins, tryR){
+  document.getElementById('kriptoList').innerHTML = coins.map(c=>{
+    const chg = c.price_change_percentage_24h||0;
+    const up = chg>=0;
+    return `<div class="kripto-row">
+      <div class="kripto-l">
+        <img class="kripto-img" src="${c.image}" onerror="this.style.background='#1e2d47'">
+        <div><div class="kripto-sym">${c.symbol.toUpperCase()}</div><div class="kripto-name">${c.name}</div></div>
+      </div>
+      <div class="kripto-r">
+        <div class="kripto-price">$${fmtD(c.current_price)}</div>
+        <div class="kripto-chg ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(chg).toFixed(2)}%</div>
+        <div class="kripto-try">${fmt(c.current_price*tryR,0)} ₺</div>
+      </div>
+    </div>`;
+  }).join('');
+  const btc=coins.find(c=>c.id==='bitcoin');
+  const eth=coins.find(c=>c.id==='ethereum');
+  if(btc){['tk-btc','tk-btc2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='$'+fmtD(btc.current_price);});}
+  if(eth){['tk-eth','tk-eth2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='$'+fmtD(eth.current_price);});}
+}
+
+function renderKriptoCap(coins, tryR){
+  document.getElementById('kriptoList').innerHTML = coins.map(c=>{
+    const price=parseFloat(c.priceUsd)||0;
+    const chg=parseFloat(c.changePercent24Hr)||0;
+    const up=chg>=0;
+    return `<div class="kripto-row">
+      <div class="kripto-l">
+        <div style="width:34px;height:34px;border-radius:50%;background:#1e2d47;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#3b82f6">${c.symbol.slice(0,3)}</div>
+        <div><div class="kripto-sym">${c.symbol}</div><div class="kripto-name">${c.name}</div></div>
+      </div>
+      <div class="kripto-r">
+        <div class="kripto-price">$${fmtD(price)}</div>
+        <div class="kripto-chg ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(chg).toFixed(2)}%</div>
+        <div class="kripto-try">${fmt(price*tryR,0)} ₺</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function renderBorsa(){
+  const list = document.getElementById('borsaList');
+  list.innerHTML = '<div class="loading"><div class="spin"></div>Borsa verileri yükleniyor...</div>';
+
+  const endeksler = [
+    {f:'🇹🇷',s:'XU100.IS',n:'BIST 100',label:'Borsa İstanbul'},
+    {f:'🇺🇸',s:'^GSPC',n:'S&P 500',label:'ABD'},
+    {f:'💻',s:'^IXIC',n:'NASDAQ',label:'Teknoloji'},
+    {f:'🇺🇸',s:'^DJI',n:'DOW JONES',label:'ABD Sanayi'},
+    {f:'🇩🇪',s:'^GDAXI',n:'DAX',label:'Almanya'},
+    {f:'🇬🇧',s:'^FTSE',n:'FTSE 100',label:'İngiltere'},
+    {f:'🇯🇵',s:'^N225',n:'NIKKEI 225',label:'Japonya'},
+    {f:'🇫🇷',s:'^FCHI',n:'CAC 40',label:'Fransa'},
+    {f:'📊',s:'^VIX',n:'VIX',label:'Korku Endeksi'},
+  ];
+
+  // Yahoo Finance proxy (15 dk gecikmeli)
+  // Yahoo Finance proxy üzerinden dene
+  for(const e of endeksler){
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(e.s)}?interval=1d&range=1d`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxyUrl, {signal: AbortSignal.timeout(5000)});
+      const wrapper = await res.json();
+      const data = JSON.parse(wrapper.contents);
+      const meta = data.chart?.result?.[0]?.meta;
+      if(meta){
+        e._price = meta.regularMarketPrice;
+        e._prev = meta.previousClose || meta.chartPreviousClose;
+        e._chg = e._prev ? ((e._price - e._prev)/e._prev*100) : 0;
+      }
+    } catch(err) {}
+  }
+
+  const loaded = endeksler.filter(e => e._price);
+  if(loaded.length > 0){
+    list.innerHTML = '<div class="warn" style="font-size:0.68rem">⏱ 15 dakika gecikmeli · Yahoo Finance</div>' +
+      endeksler.map(e => {
+        if(!e._price) return '';
+        const up = e._chg >= 0;
+        const priceStr = e._price >= 1000 ? e._price.toLocaleString('tr-TR',{maximumFractionDigits:0}) : e._price.toLocaleString('tr-TR',{maximumFractionDigits:2});
+        return `<div class="borsa-row">
+          <div class="borsa-l">
+            <div class="borsa-flag">${e.f}</div>
+            <div><div class="borsa-sym">${e.n}</div><div class="borsa-name">${e.label}</div></div>
+          </div>
+          <div class="borsa-r">
+            <div class="borsa-val ${up?'up':'down'}">${priceStr}</div>
+            <div class="borsa-chg ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(e._chg).toFixed(2)}%</div>
+          </div>
+        </div>`;
+      }).join('');
+    return;
+  }
+
+  // Fallback sabit
+  const sabit = [
+    {f:'🇹🇷',n:'BIST 100',l:'Borsa İstanbul',v:'9.412',c:1.38,up:true},
+    {f:'🇺🇸',n:'S&P 500',l:'ABD',v:'5.308',c:0.48,up:true},
+    {f:'💻',n:'NASDAQ',l:'Teknoloji',v:'18.871',c:0.92,up:true},
+    {f:'🇺🇸',n:'DOW JONES',l:'ABD Sanayi',v:'39.512',c:0.12,up:false},
+    {f:'🇩🇪',n:'DAX',l:'Almanya',v:'18.748',c:0.34,up:true},
+    {f:'🇬🇧',n:'FTSE 100',l:'İngiltere',v:'8.433',c:0.18,up:true},
+    {f:'🇯🇵',n:'NIKKEI',l:'Japonya',v:'38.820',c:0.67,up:true},
+    {f:'🇫🇷',n:'CAC 40',l:'Fransa',v:'8.095',c:0.22,up:true},
+    {f:'📊',n:'VIX',l:'Korku Endeksi',v:'14.32',c:2.10,up:false},
+  ];
+  list.innerHTML = '<div class="warn">⚠️ Referans değerler — canlı bağlantı kurulamadı</div>' +
+    sabit.map(e=>`<div class="borsa-row">
+      <div class="borsa-l">
+        <div class="borsa-flag">${e.f}</div>
+        <div><div class="borsa-sym">${e.n}</div><div class="borsa-name">${e.l}</div></div>
+      </div>
+      <div class="borsa-r">
+        <div class="borsa-val ${e.up?'up':'down'}">${e.v}</div>
+        <div class="borsa-chg ${e.up?'up':'down'}">${e.up?'▲':'▼'} ${e.c}%</div>
+      </div>
+    </div>`).join('');
+}
+
+// BAŞLAT
+renderDoviz();
+renderAltin();
+renderBorsa();
+loadDoviz();
+loadKripto();
+</script>
+</body>
+</html>
